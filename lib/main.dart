@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:endpoint_analyzer/gemini_api_handler.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +8,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-import 'package:xml/xml.dart'; // for XML
+import 'package:path_provider/path_provider.dart'; // Add this import
+import 'package:permission_handler/permission_handler.dart'; // For permissions
+
+import 'package:download/download.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: 'dotEnv.dev');
@@ -21,15 +25,11 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        body: const Center(
+        body: Center(
           child: InputTextField(),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {},
-          child: const Text('Save'),
         ),
       ),
     );
@@ -49,6 +49,24 @@ class _InputTextFieldState extends State<InputTextField> {
   final TextEditingController _controller = TextEditingController();
   late Future<dynamic> jsonData;
   final GeminiApiHandler gemini = GeminiApiHandler();
+
+  Future<void> _download(jsonData) async {
+    final DateTime currentTime = DateTime.now();
+    final Directory desktopDir = await getDesktopDirectory();
+    final String path = desktopDir.path;
+    final String file =
+        '$path/downloaded_data_${jsonData.hashCode * currentTime.microsecond}.txt';
+    final stream = Stream.fromIterable('${await jsonData}'.codeUnits);
+    await download(stream, file);
+  }
+
+  Future<Directory> getDesktopDirectory() async {
+    if (Platform.isWindows || Platform.isMacOS) {
+      return await getApplicationDocumentsDirectory();
+    } else {
+      throw UnsupportedError('Unsupported platform');
+    }
+  }
 
   @override
   void initState() {
@@ -197,6 +215,11 @@ class _InputTextFieldState extends State<InputTextField> {
                     },
                   ),
                 ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => _download(jsonData),
+                  child: Text("Save data to file"),
+                ),
               ],
             ),
             const SizedBox(width: 10),
@@ -211,7 +234,7 @@ class _InputTextFieldState extends State<InputTextField> {
                       TextEditingController(text: snapshot.data.toString()),
                 ),
               ),
-            )
+            ),
           ],
         );
       },
