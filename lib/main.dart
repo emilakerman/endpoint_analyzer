@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:endpoint_analyzer/gemini_api_handler.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:xml/xml.dart'; // for XML
 
 Future<void> main() async {
   await dotenv.load(fileName: 'dotEnv.dev');
@@ -60,7 +63,7 @@ class _InputTextFieldState extends State<InputTextField> {
   }
 
   /// example https://api.tvmaze.com/singlesearch/shows?q=simpsons
-  ///
+  /// https://api.sr.se/api/v2/scheduledepisodes?channelid=164
   Future<dynamic> analyzeEndpoint(String endpoint) async {
     String url = endpoint;
     final Response response = await http.get(Uri.parse(url));
@@ -83,13 +86,14 @@ class _InputTextFieldState extends State<InputTextField> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              Text('Reading and formatting data...'),
-            ],
-          ));
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                Text('Reading and formatting data...'),
+              ],
+            ),
+          );
         }
         return Row(
           children: [
@@ -118,11 +122,47 @@ class _InputTextFieldState extends State<InputTextField> {
                 ElevatedButton(
                   onPressed: () => setState(() {
                     jsonData = Future.value([]);
+                    _controller.clear();
                   }),
                   child: const Text(
                     'Undo',
                   ),
                 ),
+                const SizedBox(height: 10),
+                _controller.text.isNotEmpty
+                    ? FutureBuilder<String>(
+                        future: GeminiApiHandler()
+                            .xmlOrJson(snapshot.data.toString()),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          if (snapshot.hasData) {
+                            final bool isJsonData =
+                                snapshot.data!.contains('JSON');
+                            final bool isXMLData =
+                                snapshot.data!.contains('XML');
+                            return Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: !isJsonData ? null : () {},
+                                  child: Text("JSON"),
+                                ),
+                                ElevatedButton(
+                                  onPressed: !isXMLData ? null : () {},
+                                  child: Text("XML"),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return const SizedBox.shrink();
+                          }
+                        },
+                      )
+                    : const SizedBox.shrink(),
                 const SizedBox(height: 10),
                 SizedBox(
                   width: 300,
