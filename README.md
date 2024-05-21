@@ -11,3 +11,5 @@ This Flutter application is built as a Desktop application.
 
 https://www.youtube.com/watch?v=<jbZWJZLVf6k>
 https://youtu.be/<jbZWJZLVf6k>
+
+[![Watch the video](https://img.youtube.com/vi/T-D1KVIuvjA/maxresdefault.jpg)](https://youtu.be/jbZWJZLVf6k)
