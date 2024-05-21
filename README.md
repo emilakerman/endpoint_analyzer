@@ -8,6 +8,4 @@ This Flutter application is built as a Desktop application.
 * Lets the user download a copy of the fetched API data.
 * Uses the Gemini API.
 
-
-https://www.youtube.com/watch?v=<jbZWJZLVf6k>
-https://youtu.be/<jbZWJZLVf6k>
+https://github.com/emilakerman/endpoint_analyzer/assets/113968859/949e7296-d331-44c8-b207-611e58b5746a
