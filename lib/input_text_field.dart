@@ -214,7 +214,7 @@ class _InputTextFieldState extends State<InputTextField> {
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed:
-                      !_controller.text.isNotEmpty || jsonData != 'Invalid URL'
+                      !_controller.text.isNotEmpty || jsonData == 'Invalid URL'
                           ? null
                           : () {
                               _download(jsonData);
